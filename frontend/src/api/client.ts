@@ -1,11 +1,19 @@
 export const AUTH_TOKEN_KEY = "iot_portal_token";
 
-const FALLBACK_API_BASE_URL = "http://103.150.191.221:4000";
+const LOCALHOST_FALLBACK = "http://localhost:4000";
+const LOCAL_HOSTNAMES = new Set(["localhost", "127.0.0.1", "[::1]"]);
 
 type ApiResponse = Response & { requestUrl?: string };
 
 const trimTrailingSlash = (url: string) => url.replace(/\/+$/, "");
 const ensureLeadingSlash = (path: string) => (path.startsWith("/") ? path : `/${path}`);
+
+function isLocalhostOrigin(): boolean {
+  if (typeof window === "undefined") {
+    return false;
+  }
+  return LOCAL_HOSTNAMES.has(window.location.hostname);
+}
 
 export function getApiBaseUrl(): string {
   const raw = import.meta.env.VITE_API_BASE_URL?.trim();
@@ -13,17 +21,14 @@ export function getApiBaseUrl(): string {
     return trimTrailingSlash(raw);
   }
 
-  if (import.meta.env.DEV) {
+  if (isLocalhostOrigin()) {
     console.warn(
-      `[api] VITE_API_BASE_URL is missing. Falling back to ${FALLBACK_API_BASE_URL} for local development.`,
+      `[api] VITE_API_BASE_URL missing; falling back to ${LOCALHOST_FALLBACK} because the browser origin is localhost.`,
     );
-    return FALLBACK_API_BASE_URL;
+    return LOCALHOST_FALLBACK;
   }
 
-  const message =
-    "VITE_API_BASE_URL is not configured. Set it in frontend/.env before deploying to a public environment.";
-  console.error(message);
-  throw new Error(message);
+  throw new Error("VITE_API_BASE_URL missing on non-localhost origin");
 }
 
 export function buildApiUrl(path: string): string {
