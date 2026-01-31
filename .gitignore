@@ -1,0 +1,12 @@
+# Environment files
+.env
+api/.env
+frontend/.env
+
+# Python artifacts
+__pycache__/
+*.pyc
+
+# Node artifacts
+node_modules/
+dist/
