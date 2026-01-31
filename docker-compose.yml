@@ -1,20 +1,35 @@
 version: "3.9"
 
 services:
+  postgres:
+    image: postgres:15
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${PG_USER:-iot}
+      POSTGRES_PASSWORD: ${PG_PASSWORD:-iotpass}
+      POSTGRES_DB: ${PG_DB:-iot_portal}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
   api:
     build: ./api
-    environment:
-      - API_HOST=0.0.0.0
-      - API_PORT=4000
-      - API_ALLOWED_ORIGINS=${API_ALLOWED_ORIGINS:-http://localhost:5173,http://103.150.191.221:5173}
+    env_file:
+      - .env
+    depends_on:
+      - postgres
     ports:
       - "4000:4000"
 
   frontend:
     build: ./frontend
+    env_file:
+      - .env
     environment:
-      VITE_API_BASE_URL: "http://103.150.191.221:4000"
+      - VITE_API_BASE_URL=${VITE_API_BASE_URL}
     depends_on:
       - api
     ports:
       - "5173:5173"
+
+volumes:
+  postgres_data:

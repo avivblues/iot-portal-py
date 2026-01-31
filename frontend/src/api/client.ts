@@ -1,7 +1,7 @@
-type ApiResponse = Response & { requestUrl?: string };
-
 const trimTrailingSlash = (url: string) => url.replace(/\/+$/, "");
 const ensureLeadingSlash = (path: string) => (path.startsWith("/") ? path : `/${path}`);
+
+export const AUTH_TOKEN_KEY = "iot_portal_token";
 
 export function getApiBaseUrl(): string {
   const raw = import.meta.env.VITE_API_BASE_URL?.trim();
@@ -15,15 +15,58 @@ export function buildApiUrl(path: string): string {
   return `${getApiBaseUrl()}${ensureLeadingSlash(path)}`;
 }
 
-export async function apiFetch(path: string, init?: RequestInit): Promise<ApiResponse> {
-  const url = buildApiUrl(path);
-  const response = (await fetch(url, init)) as ApiResponse;
-  response.requestUrl = url;
-  return response;
+export function saveToken(token: string) {
+  localStorage.setItem(AUTH_TOKEN_KEY, token);
 }
 
-export async function apiGet<T>(path: string): Promise<{ data: T; requestUrl: string }> {
-  const response = await apiFetch(path, { method: "GET" });
-  const payload = await response.json();
-  return { data: payload as T, requestUrl: response.requestUrl ?? buildApiUrl(path) };
+export function getToken(): string | null {
+  return localStorage.getItem(AUTH_TOKEN_KEY);
+}
+
+export function clearToken() {
+  localStorage.removeItem(AUTH_TOKEN_KEY);
+}
+
+type RequestOptions = {
+  method?: string;
+  body?: unknown;
+  token?: string;
+  headers?: HeadersInit;
+};
+
+export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
+  const url = buildApiUrl(path);
+  const headers: HeadersInit = {
+    "Content-Type": "application/json",
+    ...(options.headers ?? {})
+  };
+
+  if (options.token) {
+    headers.Authorization = `Bearer ${options.token}`;
+  }
+
+  const response = await fetch(url, {
+    method: options.method ?? "GET",
+    headers,
+    body: options.body !== undefined ? JSON.stringify(options.body) : undefined
+  });
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || `Request failed with status ${response.status}`);
+  }
+
+  if (response.status === 204) {
+    return {} as T;
+  }
+
+  return (await response.json()) as T;
+}
+
+export function apiGet<T>(path: string, token?: string): Promise<T> {
+  return apiRequest<T>(path, { method: "GET", token });
+}
+
+export function apiPost<T>(path: string, body: unknown, token?: string): Promise<T> {
+  return apiRequest<T>(path, { method: "POST", body, token });
 }
