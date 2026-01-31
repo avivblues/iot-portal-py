@@ -1,27 +1,19 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .auth.routes import router as auth_router
+from .routers.health import router as health_router
+from .settings import get_settings
 
-app = FastAPI(title="IoT Portal Auth API")
+settings = get_settings()
 
-ALLOWED_ORIGINS = [
-    "http://localhost:5173",
-    "http://103.150.191.221:5173",
-]
+app = FastAPI(title="IoT Portal API", version="0.1.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,
+    allow_origins=[str(origin) for origin in settings.cors_allowed_origins],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-
-@app.get("/health")
-async def health_check():
-    return {"ok": True}
-
-
-app.include_router(auth_router)
+app.include_router(health_router)

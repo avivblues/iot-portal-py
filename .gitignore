@@ -1,12 +1,9 @@
-# Environment files
+__pycache__/
+*.py[cod]
 .env
 api/.env
 frontend/.env
-
-# Python artifacts
-__pycache__/
-*.pyc
-
-# Node artifacts
 node_modules/
 dist/
+.vscode/
+.DS_Store
