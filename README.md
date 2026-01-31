@@ -19,6 +19,10 @@ docker compose up -d --build
 
 # verify
 curl http://localhost:4000/health
+
+# verify environment wiring
+docker compose exec frontend sh -lc 'echo $VITE_API_BASE_URL'
+grep -R "localhost:4000" -n frontend
 ```
 
 ## Deployment Script
