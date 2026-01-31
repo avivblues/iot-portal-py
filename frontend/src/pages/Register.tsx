@@ -1,139 +1,77 @@
-import { FormEvent, useState } from "react";
-import type { CSSProperties } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState } from "react";
 
-import { apiPost } from "../api/client";
 
-type RegisterForm = {
-  email: string;
-  full_name: string;
-  password: string;
-};
-
-type RegisterResponse = {
-  id: string;
-  email: string;
-};
+import { apiPost, saveAuthToken } from "../api/client";
 
 const Register = () => {
-  const navigate = useNavigate();
-  const [form, setForm] = useState<RegisterForm>({ email: "", full_name: "", password: "" });
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
+  const [lastUser, setLastUser] = useState<any | null>(null);
 
-  const handleSubmit = async (event: FormEvent) => {
-    event.preventDefault();
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
     setLoading(true);
-    setError(null);
-    setSuccess(null);
-
+    setMessage(null);
     try {
-      const payload = { ...form };
-      await apiPost<RegisterForm, RegisterResponse>("/auth/register", payload);
-      setSuccess("Account created. You can sign in now.");
-      setTimeout(() => navigate("/login"), 800);
+      const { data } = await apiPost<{ access_token: string; token_type: string; user: any }, { email: string; password: string; full_name?: string }>(
+        "/auth/register",
+        { email, password, full_name: fullName }
+      );
+      saveAuthToken(data.access_token);
+      setLastUser(data.user);
+      setMessage("Account created and signed in");
     } catch (err) {
-      setError("Registration failed. Email might already exist.");
+      setMessage(err instanceof Error ? err.message : String(err));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <main style={containerStyle}>
-      <section style={cardStyle}>
-        <p style={{ letterSpacing: "0.35em", fontSize: "0.8rem", opacity: 0.7 }}>CREATE ACCESS</p>
-        <h1 style={{ margin: "0.5rem 0 1.5rem", fontSize: "2.5rem" }}>Join the portal</h1>
-        <form onSubmit={handleSubmit} style={{ display: "grid", gap: "0.75rem" }}>
-          <label style={labelStyle}>
-            Email
-            <input
-              style={inputStyle}
-              type="email"
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-              required
-            />
+    <main style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#0f172a", color: "#f8fafc", padding: "2rem" }}>
+      <section style={{ width: "min(480px, 100%)", padding: "2.5rem", borderRadius: "1rem", background: "#1e293b" }}>
+        <p style={{ letterSpacing: "0.3em", fontSize: "0.75rem", opacity: 0.7 }}>IOT PORTAL</p>
+        <h1 style={{ marginTop: "0.5rem", marginBottom: "1rem" }}>Create account</h1>
+
+        <form onSubmit={submit}>
+          <label style={{ display: "block", marginBottom: "0.5rem" }}>
+            <div style={{ marginBottom: "0.25rem", fontSize: "0.9rem" }}>Full name</div>
+            <input value={fullName} onChange={(e) => setFullName(e.target.value)} type="text" style={{ width: "100%", padding: "0.5rem", borderRadius: "0.5rem" }} />
           </label>
-          <label style={labelStyle}>
-            Full name
-            <input
-              style={inputStyle}
-              type="text"
-              value={form.full_name}
-              onChange={(e) => setForm({ ...form, full_name: e.target.value })}
-              required
-            />
+
+          <label style={{ display: "block", marginBottom: "0.5rem" }}>
+            <div style={{ marginBottom: "0.25rem", fontSize: "0.9rem" }}>Email</div>
+            <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" required style={{ width: "100%", padding: "0.5rem", borderRadius: "0.5rem" }} />
           </label>
-          <label style={labelStyle}>
-            Password
-            <input
-              style={inputStyle}
-              type="password"
-              value={form.password}
-              onChange={(e) => setForm({ ...form, password: e.target.value })}
-              minLength={8}
-              required
-            />
+
+          <label style={{ display: "block", marginBottom: "0.75rem" }}>
+            <div style={{ marginBottom: "0.25rem", fontSize: "0.9rem" }}>Password</div>
+            <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" required style={{ width: "100%", padding: "0.5rem", borderRadius: "0.5rem" }} />
           </label>
-          {error && <p style={{ color: "#f87171", margin: 0 }}>{error}</p>}
-          {success && <p style={{ color: "#34d399", margin: 0 }}>{success}</p>}
-          <button style={buttonStyle} type="submit" disabled={loading}>
-            {loading ? "Creating account..." : "Create account"}
+
+          <button type="submit" disabled={loading} style={{ width: "100%", padding: "0.9rem", borderRadius: "999px", background: "#22d3ee", color: "#0f172a", fontWeight: 700 }}>
+            {loading ? "Creating…" : "Create account"}
           </button>
         </form>
-        <p style={{ marginTop: "1.5rem", opacity: 0.8 }}>
-          Already registered? <Link style={{ color: "#a5b4fc" }} to="/login">Log in</Link>.
-        </p>
+
+        <div style={{ marginTop: "1rem", fontSize: "0.9rem" }}>
+          <a href="/login" style={{ color: "#7dd3fc" }}>Sign in instead</a>
+        </div>
+
+        {message && (
+          <div style={{ marginTop: "1rem", padding: "0.75rem", borderRadius: "0.5rem", background: "#0b1220" }}>
+            <strong>Status:</strong> {message}
+            {lastUser && (
+              <pre style={{ marginTop: "0.5rem", whiteSpace: "pre-wrap" }}>{JSON.stringify(lastUser, null, 2)}</pre>
+            )}
+          </div>
+        )}
       </section>
     </main>
   );
-};
-
-const containerStyle: CSSProperties = {
-  minHeight: "100vh",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  background: "radial-gradient(circle at top, #1f2937, #030712)",
-  color: "#f8fafc",
-  padding: "2rem",
-};
-
-const cardStyle: CSSProperties = {
-  width: "min(440px, 100%)",
-  padding: "2.5rem",
-  borderRadius: "30px",
-  background: "rgba(15, 23, 42, 0.95)",
-  boxShadow: "0 30px 65px rgba(2, 6, 23, 0.55)",
-};
-
-const labelStyle: CSSProperties = {
-  display: "grid",
-  gap: "0.3rem",
-  fontWeight: 600,
-  fontSize: "0.9rem",
-};
-
-const inputStyle: CSSProperties = {
-  padding: "0.85rem 1rem",
-  borderRadius: "12px",
-  border: "1px solid rgba(248, 250, 252, 0.2)",
-  background: "rgba(2, 6, 23, 0.6)",
-  color: "#f8fafc",
-};
-
-const buttonStyle: CSSProperties = {
-  width: "100%",
-  padding: "0.95rem 1.2rem",
-  borderRadius: "18px",
-  border: "none",
-  fontWeight: 600,
-  fontSize: "1rem",
-  background: "linear-gradient(120deg, #34d399, #10b981)",
-  color: "#022c22",
-  cursor: "pointer",
 };
 
 export default Register;

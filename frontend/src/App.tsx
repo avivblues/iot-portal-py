@@ -1,7 +1,3 @@
-import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
-
-import ProtectedRoute from "./components/ProtectedRoute";
-import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 
@@ -11,24 +7,9 @@ const App = () => {
     throw new Error("VITE_API_BASE_URL is required for the frontend to contact the API");
   }
 
-  return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          }
-        />
-        <Route path="/" element={<Navigate to="/login" replace />} />
-        <Route path="*" element={<Navigate to="/login" replace />} />
-      </Routes>
-    </BrowserRouter>
-  );
+  const path = typeof window !== "undefined" ? window.location.pathname : "/";
+  if (path.startsWith("/register")) return <Register />;
+  return <Login />;
 };
 
 export default App;

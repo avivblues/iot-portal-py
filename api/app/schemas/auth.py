@@ -25,6 +25,13 @@ class UserResponse(BaseModel):
     created_at: datetime
 
 
-class TokenResponse(BaseModel):
+class UserPublic(BaseModel):
+    id: UUID
+    email: EmailStr
+    full_name: Optional[str] = None
+
+
+class AuthResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
+    user: UserPublic
