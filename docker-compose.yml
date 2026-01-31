@@ -13,7 +13,7 @@ services:
   frontend:
     build: ./frontend
     environment:
-      - VITE_API_BASE_URL: http://103.150.191.221:4000
+      - VITE_API_BASE_URL: "http://103.150.191.221:4000"
     depends_on:
       - api
     ports:
