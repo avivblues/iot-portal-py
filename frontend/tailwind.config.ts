@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import animate from "tailwindcss-animate";
 
 const withOpacity = (variable: string) => {
   return ({ opacityValue }: { opacityValue?: string }) => {
@@ -66,7 +67,7 @@ const config: Config = {
       }
     }
   },
-  plugins: []
+  plugins: [animate]
 };
 
 export default config;

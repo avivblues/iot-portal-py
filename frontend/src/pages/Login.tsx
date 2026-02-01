@@ -1,52 +1,67 @@
 import { useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+
+import { apiPost } from "../api/client";
 import AuthLayout from "../components/AuthLayout";
-import { apiPost, saveAuthToken } from "../api/client";
+import ErrorState from "../components/ErrorState";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import { Label } from "../components/ui/label";
+import { useAuth } from "../context/AuthContext";
+
+type LocationState = { from?: { pathname: string } };
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { loginWithToken } = useAuth();
 
-  const submit = async (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
-    setMessage(null);
+    setError(null);
     try {
-      const { data } = await apiPost<{ access_token: string; token_type: string; user: any }, { email: string; password: string }>(
-        "/auth/login",
-        { email, password }
-      );
-      saveAuthToken(data.access_token);
-      window.location.href = "/dashboard";
+      const { data } = await apiPost<{ access_token: string; token_type: string }>("/auth/login", { email, password });
+      await loginWithToken(data.access_token);
+      const redirectTo = (location.state as LocationState | null)?.from?.pathname ?? "/dashboard";
+      navigate(redirectTo, { replace: true });
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : String(err));
+      setError(err instanceof Error ? err.message : "Unable to sign in");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <AuthLayout title="Login" subtitle="Secure access to the IoT control room" footer={<a href="/register" style={{ color: "#7dd3fc" }}>Create an account</a>}>
-      <form onSubmit={submit}>
-        <label style={{ display: "block", marginBottom: "0.75rem" }}>
-          <span style={{ display: "block", marginBottom: "0.25rem", fontSize: "0.9rem" }}>Email</span>
-          <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" required style={{ width: "100%", padding: "0.65rem", borderRadius: "0.75rem", border: "1px solid rgba(148, 163, 184, 0.4)", background: "rgba(15, 23, 42, 0.6)", color: "#f8fafc" }} />
-        </label>
-
-        <label style={{ display: "block", marginBottom: "1rem" }}>
-          <span style={{ display: "block", marginBottom: "0.25rem", fontSize: "0.9rem" }}>Password</span>
-          <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" required style={{ width: "100%", padding: "0.65rem", borderRadius: "0.75rem", border: "1px solid rgba(148, 163, 184, 0.4)", background: "rgba(15, 23, 42, 0.6)", color: "#f8fafc" }} />
-        </label>
-
-        <button type="submit" disabled={loading} style={{ width: "100%", padding: "0.95rem", borderRadius: "999px", background: "linear-gradient(135deg, #34d399, #22d3ee)", border: "none", color: "#021225", fontWeight: 700 }}>
+    <AuthLayout
+      title="Welcome back"
+      subtitle="Authenticate to orchestrate devices, energy, and automation policies"
+      footer={
+        <p>
+          Need an account? <Link className="text-primary" to="/register">Create one</Link>
+        </p>
+      }
+    >
+      <form className="space-y-5" onSubmit={submit}>
+        <div className="space-y-2">
+          <Label htmlFor="email">Email</Label>
+          <Input id="email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="password">Password</Label>
+          <Input id="password" type="password" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} />
+        </div>
+        <Button className="w-full" disabled={loading} type="submit">
           {loading ? "Signing in…" : "Sign in"}
-        </button>
+        </Button>
       </form>
-
-      {message && (
-        <div style={{ marginTop: "1.25rem", padding: "0.85rem", borderRadius: "0.75rem", background: "rgba(248, 113, 113, 0.15)", border: "1px solid rgba(248, 113, 113, 0.3)", color: "#fecaca" }}>
-          {message}
+      {error && (
+        <div className="mt-6">
+          <ErrorState description={error} actionLabel="Try again" onAction={() => setError(null)} />
         </div>
       )}
     </AuthLayout>

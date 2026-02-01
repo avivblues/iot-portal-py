@@ -8,35 +8,35 @@ type AuthLayoutProps = {
 };
 
 const AuthLayout = ({ title, subtitle, children, footer }: AuthLayoutProps) => (
-  <main
-    style={{
-      minHeight: "100vh",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      background: "radial-gradient(circle at top, #1e1b4b, #020617)",
-      color: "#e2e8f0",
-      padding: "2rem",
-      fontFamily: '"Space Grotesk", system-ui, sans-serif'
-    }}
-  >
-    <section
-      style={{
-        width: "min(440px, 100%)",
-        padding: "2.75rem",
-        borderRadius: "1.5rem",
-        background: "rgba(15, 23, 42, 0.85)",
-        boxShadow: "0 25px 80px rgba(2, 6, 23, 0.75)",
-        backdropFilter: "blur(12px)",
-        border: "1px solid rgba(148, 163, 184, 0.15)"
-      }}
-    >
-      <p style={{ letterSpacing: "0.3em", fontSize: "0.75rem", opacity: 0.7, textTransform: "uppercase" }}>IoT Portal</p>
-      <h1 style={{ marginTop: "0.35rem", marginBottom: "0.35rem", fontSize: "2rem", fontWeight: 600 }}>{title}</h1>
-      {subtitle && <p style={{ marginBottom: "1.5rem", opacity: 0.8 }}>{subtitle}</p>}
-      {children}
-      {footer && <div style={{ marginTop: "1.25rem" }}>{footer}</div>}
-    </section>
+  <main className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(var(--color-primary),0.2),_rgb(var(--color-background)))] px-4 py-10 text-foreground">
+    <div className="mx-auto w-full max-w-4xl rounded-[2.5rem] border border-border/50 bg-background/70 p-8 shadow-soft backdrop-blur">
+      <div className="grid gap-10 lg:grid-cols-2">
+        <div className="flex flex-col justify-center rounded-[2rem] border border-border/40 bg-card/70 p-8 shadow-soft">
+          <p className="text-xs uppercase tracking-[0.35em] text-muted-foreground">IoT Portal</p>
+          <h1 className="mt-4 font-display text-3xl font-semibold text-foreground">{title}</h1>
+          {subtitle && <p className="mt-2 text-sm text-muted-foreground">{subtitle}</p>}
+          <div className="mt-8 space-y-6 text-sm text-muted-foreground">
+            <div>
+              <p className="text-foreground">Zero-trust perimeter</p>
+              <p>SSO ready – SCIM provisioning, SAML2, and audit logging baked in.</p>
+            </div>
+            <div>
+              <p className="text-foreground">99.99% uptime SLA</p>
+              <p>Edge gateways monitored around the clock with predictive remediation.</p>
+            </div>
+          </div>
+        </div>
+        <section className="rounded-[2rem] border border-border/60 bg-card/80 p-8 shadow-soft backdrop-blur">
+          <div>
+            <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Access</p>
+            <h2 className="mt-2 text-2xl font-semibold text-card-foreground">{title}</h2>
+            {subtitle && <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>}
+          </div>
+          <div className="mt-6 space-y-6">{children}</div>
+          {footer && <div className="mt-8 text-sm text-muted-foreground">{footer}</div>}
+        </section>
+      </div>
+    </div>
   </main>
 );
 

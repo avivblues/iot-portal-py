@@ -1,14 +1,12 @@
 import { BellRing, Cpu, LayoutDashboard, Menu, Workflow } from "lucide-react";
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useState } from "react";
 
+import { useTheme } from "../context/ThemeContext";
 import { cn } from "../lib/utils";
-import AccentSelect, { AccentTone } from "./AccentSelect";
+import AccentSelect from "./AccentSelect";
 import PageHeader from "./PageHeader";
 import SidebarItem from "./SidebarItem";
-import ThemeToggle, { ThemeMode } from "./ThemeToggle";
-
-const THEME_STORAGE_KEY = "iot-portal-theme";
-const ACCENT_STORAGE_KEY = "iot-portal-accent";
+import ThemeToggle from "./ThemeToggle";
 
 type AppShellProps = {
   title: string;
@@ -28,48 +26,8 @@ const navItems = [
 
 const AppShell = ({ title, subtitle, userName, onLogout, activeRoute = "overview", children }: AppShellProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [theme, setTheme] = useState<ThemeMode>("dark");
-  const [accent, setAccent] = useState<AccentTone>("cyan");
+  const { mode, accent, setMode, setAccent } = useTheme();
   const currentNav = activeRoute;
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    let storedTheme: ThemeMode | null = null;
-    let storedAccent: AccentTone | null = null;
-    try {
-      storedTheme = localStorage.getItem(THEME_STORAGE_KEY) as ThemeMode | null;
-      storedAccent = localStorage.getItem(ACCENT_STORAGE_KEY) as AccentTone | null;
-    } catch {
-      storedTheme = null;
-      storedAccent = null;
-    }
-    const resolvedTheme = storedTheme ?? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
-    const resolvedAccent = storedAccent ?? "cyan";
-    setTheme(resolvedTheme);
-    setAccent(resolvedAccent);
-  }, []);
-
-  useEffect(() => {
-    if (typeof document === "undefined") return;
-    const root = document.documentElement;
-    root.classList.toggle("dark", theme === "dark");
-    try {
-      localStorage.setItem(THEME_STORAGE_KEY, theme);
-    } catch {
-      /* noop */
-    }
-  }, [theme]);
-
-  useEffect(() => {
-    if (typeof document === "undefined") return;
-    const root = document.documentElement;
-    root.setAttribute("data-accent", accent);
-    try {
-      localStorage.setItem(ACCENT_STORAGE_KEY, accent);
-    } catch {
-      /* noop */
-    }
-  }, [accent]);
 
   return (
     <div className="relative min-h-screen bg-background text-foreground">
@@ -114,7 +72,7 @@ const AppShell = ({ title, subtitle, userName, onLogout, activeRoute = "overview
             actions={
               <div className="flex items-center gap-2">
                 <AccentSelect value={accent} onChange={setAccent} />
-                <ThemeToggle mode={theme} onChange={setTheme} />
+                <ThemeToggle mode={mode} onChange={setMode} />
                 <button
                   type="button"
                   className="inline-flex items-center justify-center rounded-2xl border border-border bg-card/80 px-3 py-2 text-sm text-foreground lg:hidden"

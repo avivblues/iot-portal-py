@@ -1,58 +1,72 @@
 import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+
+import { apiPost } from "../api/client";
 import AuthLayout from "../components/AuthLayout";
-import { apiPost, saveAuthToken } from "../api/client";
+import ErrorState from "../components/ErrorState";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import { Label } from "../components/ui/label";
+import { useAuth } from "../context/AuthContext";
 
 const Register = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
+  const { loginWithToken } = useAuth();
 
-  const submit = async (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
-    setMessage(null);
+    setError(null);
     try {
-      const { data } = await apiPost<{ access_token: string; token_type: string; user: any }, { email: string; password: string; full_name?: string }>(
-        "/auth/register",
-        { email, password, full_name: fullName }
-      );
-      saveAuthToken(data.access_token);
-      window.location.href = "/dashboard";
+      const { data } = await apiPost<{ access_token: string; token_type: string }>("/auth/register", {
+        email,
+        password,
+        full_name: fullName,
+      });
+      await loginWithToken(data.access_token);
+      navigate("/dashboard", { replace: true });
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : String(err));
+      setError(err instanceof Error ? err.message : "Unable to create workspace");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <AuthLayout title="Create account" subtitle="Provision a workspace for your IoT operations" footer={<a href="/login" style={{ color: "#7dd3fc" }}>Sign in instead</a>}>
-      <form onSubmit={submit}>
-        <label style={{ display: "block", marginBottom: "0.75rem" }}>
-          <span style={{ display: "block", marginBottom: "0.25rem", fontSize: "0.9rem" }}>Full name</span>
-          <input value={fullName} onChange={(e) => setFullName(e.target.value)} type="text" style={{ width: "100%", padding: "0.65rem", borderRadius: "0.75rem", border: "1px solid rgba(148, 163, 184, 0.4)", background: "rgba(15, 23, 42, 0.6)", color: "#f8fafc" }} />
-        </label>
-
-        <label style={{ display: "block", marginBottom: "0.75rem" }}>
-          <span style={{ display: "block", marginBottom: "0.25rem", fontSize: "0.9rem" }}>Email</span>
-          <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" required style={{ width: "100%", padding: "0.65rem", borderRadius: "0.75rem", border: "1px solid rgba(148, 163, 184, 0.4)", background: "rgba(15, 23, 42, 0.6)", color: "#f8fafc" }} />
-        </label>
-
-        <label style={{ display: "block", marginBottom: "1rem" }}>
-          <span style={{ display: "block", marginBottom: "0.25rem", fontSize: "0.9rem" }}>Password</span>
-          <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" required style={{ width: "100%", padding: "0.65rem", borderRadius: "0.75rem", border: "1px solid rgba(148, 163, 184, 0.4)", background: "rgba(15, 23, 42, 0.6)", color: "#f8fafc" }} />
-        </label>
-
-        <button type="submit" disabled={loading} style={{ width: "100%", padding: "0.95rem", borderRadius: "999px", background: "linear-gradient(135deg, #c084fc, #7dd3fc)", border: "none", color: "#021225", fontWeight: 700 }}>
-          {loading ? "Creating…" : "Create account"}
-        </button>
+    <AuthLayout
+      title="Create an account"
+      subtitle="Provision a tenant to orchestrate assets, alerts, and automations"
+      footer={
+        <p>
+          Already onboarded? <Link className="text-primary" to="/login">Sign in</Link>
+        </p>
+      }
+    >
+      <form className="space-y-5" onSubmit={submit}>
+        <div className="space-y-2">
+          <Label htmlFor="fullName">Full name</Label>
+          <Input id="fullName" type="text" autoComplete="name" value={fullName} onChange={(e) => setFullName(e.target.value)} />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="email">Work email</Label>
+          <Input id="email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="password">Password</Label>
+          <Input id="password" type="password" autoComplete="new-password" required value={password} onChange={(e) => setPassword(e.target.value)} />
+        </div>
+        <Button className="w-full" disabled={loading} type="submit">
+          {loading ? "Creating…" : "Create workspace"}
+        </Button>
       </form>
-
-      {message && (
-        <div style={{ marginTop: "1.25rem", padding: "0.85rem", borderRadius: "0.75rem", background: "rgba(248, 113, 113, 0.15)", border: "1px solid rgba(248, 113, 113, 0.3)", color: "#fecaca" }}>
-          {message}
+      {error && (
+        <div className="mt-6">
+          <ErrorState description={error} actionLabel="Try again" onAction={() => setError(null)} />
         </div>
       )}
     </AuthLayout>
