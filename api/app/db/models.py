@@ -17,7 +17,6 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
-from ..core.telemetry import METRIC_DEFINITIONS
 from .session import Base
 
 
@@ -60,33 +59,16 @@ class Device(Base):
     name = Column(String(255), nullable=False)
     location = Column(String(255), nullable=True)
     mqtt_topic_base = Column(String(255), nullable=False)
+    mqtt_device_id = Column(UUID(as_uuid=True), nullable=False, unique=True, index=True, default=uuid.uuid4)
     device_key = Column(String(255), nullable=False, unique=True)
     status = Column(SqlEnum(DeviceStatus), nullable=False, default=DeviceStatus.active)
+    last_seen_at = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
     tenant = relationship("Tenant", back_populates="devices")
-    metrics = relationship("DeviceMetric", back_populates="device", cascade="all, delete-orphan")
     thresholds = relationship("DeviceThreshold", back_populates="device", cascade="all, delete-orphan")
     alerts = relationship("Alert", back_populates="device", cascade="all, delete-orphan")
-
-
-class DeviceMetric(Base):
-    __tablename__ = "device_metrics"
-    __table_args__ = (UniqueConstraint("device_id", "metric_key", name="uq_device_metric_key"),)
-
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    device_id = Column(UUID(as_uuid=True), ForeignKey("devices.id", ondelete="CASCADE"), nullable=False)
-    metric_key = Column(String(50), nullable=False)
-    unit = Column(String(32), nullable=False)
-    enabled = Column(Boolean, nullable=False, default=True)
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-
-    device = relationship("Device", back_populates="metrics")
-
-    @staticmethod
-    def default_metrics() -> list[dict[str, str]]:
-        return [{"metric_key": definition.key.value, "unit": definition.unit} for definition in METRIC_DEFINITIONS.values()]
 
 
 class DeviceThreshold(Base):

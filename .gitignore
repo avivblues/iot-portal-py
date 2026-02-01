@@ -1,9 +1,16 @@
 __pycache__/
 *.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
 .env
 api/.env
 frontend/.env
 node_modules/
 dist/
+frontend/dist/
 .vscode/
 .DS_Store
+

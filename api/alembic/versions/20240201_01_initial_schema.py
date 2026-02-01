@@ -48,31 +48,23 @@ def upgrade() -> None:
     alert_status_enum = sa.Enum("open", "acked", "resolved", name="alertstatus")
     alert_severity_enum = sa.Enum("warning", "critical", name="alertseverity")
 
-    devices_table = op.create_table(
+    op.create_table(
         "devices",
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True),
         sa.Column("tenant_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("tenants.id"), nullable=False),
         sa.Column("name", sa.String(length=255), nullable=False),
         sa.Column("location", sa.String(length=255), nullable=True),
         sa.Column("mqtt_topic_base", sa.String(length=255), nullable=False),
+        sa.Column("mqtt_device_id", postgresql.UUID(as_uuid=True), nullable=False, unique=True),
         sa.Column("device_key", sa.String(length=255), nullable=False, unique=True),
         sa.Column("status", device_status_enum, nullable=False, server_default=sa.text("'active'::devicestatus")),
+        sa.Column("last_seen_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
     )
 
     op.create_index("ix_devices_tenant_id", "devices", ["tenant_id"])
-
-    op.create_table(
-        "device_metrics",
-        sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True),
-        sa.Column("device_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("devices.id", ondelete="CASCADE"), nullable=False),
-        sa.Column("metric_key", sa.String(length=50), nullable=False),
-        sa.Column("unit", sa.String(length=32), nullable=False),
-        sa.Column("enabled", sa.Boolean, nullable=False, server_default=sa.true()),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
-        sa.UniqueConstraint("device_id", "metric_key", name="uq_device_metric_key"),
-    )
+    op.create_index("ix_devices_mqtt_device_id", "devices", ["mqtt_device_id"], unique=True)
 
     op.create_table(
         "thresholds",
@@ -118,7 +110,7 @@ def downgrade() -> None:
     op.drop_index("ix_users_email", table_name="users")
     op.drop_table("alerts")
     op.drop_table("thresholds")
-    op.drop_table("device_metrics")
+    op.drop_index("ix_devices_mqtt_device_id", table_name="devices")
     op.drop_index("ix_devices_tenant_id", table_name="devices")
     op.drop_table("devices")
     op.drop_table("users")

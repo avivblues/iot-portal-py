@@ -1,7 +1,7 @@
 import uuid
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 
@@ -56,10 +56,10 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
     return _issue_token(user)
 
 
-def get_current_user(db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)) -> User:
-    credentials_exception = HTTPException(
+def resolve_user_from_token(db: Session, token: str) -> User:
+    credentials_exception = api_error(
+        "Invalid or expired token",
         status_code=status.HTTP_401_UNAUTHORIZED,
-        detail={"message": "Invalid or expired token", "details": None},
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
@@ -79,8 +79,11 @@ def get_current_user(db: Session = Depends(get_db), token: str = Depends(oauth2_
     user = db.get(User, user_uuid)
     if not user:
         raise credentials_exception
-
     return user
+
+
+def get_current_user(db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)) -> User:
+    return resolve_user_from_token(db, token)
 
 
 @router.get("/me", response_model=UserResponse)
