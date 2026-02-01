@@ -6,27 +6,8 @@ from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 
 from ..core import security
-from ..db.models import User
-from ..db.session import get_db
-from ..schemas.auth import (
-    LoginRequest,
-    RegisterRequest,
-    UserResponse,
-    AuthResponse,
-    UserPublic,
-)
-
-router = APIRouter(prefix="/auth", tags=["auth"])
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
-
-
-import uuid
-
-from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
-from sqlalchemy.orm import Session
-
-from ..core import security
+from ..core.errors import api_error
+from ..core.tenancy import DEFAULT_TENANT_ID
 from ..db.models import User
 from ..db.session import get_db
 from ..schemas.auth import AuthResponse, LoginRequest, RegisterRequest, UserPublic, UserResponse
@@ -53,9 +34,10 @@ def _issue_token(user: User) -> AuthResponse:
 def register(request: RegisterRequest, db: Session = Depends(get_db)):
     existing = get_user_by_email(db, request.email)
     if existing:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email already registered")
+        raise api_error("Email already registered", status_code=status.HTTP_409_CONFLICT)
 
     user = User(
+        tenant_id=DEFAULT_TENANT_ID,
         email=request.email.strip().lower(),
         full_name=request.full_name.strip() if request.full_name else None,
         password_hash=security.hash_password(request.password),
@@ -70,14 +52,14 @@ def register(request: RegisterRequest, db: Session = Depends(get_db)):
 def login(request: LoginRequest, db: Session = Depends(get_db)):
     user = get_user_by_email(db, request.email)
     if not user or not security.verify_password(request.password, user.password_hash):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
+        raise api_error("Invalid email or password", status_code=status.HTTP_401_UNAUTHORIZED)
     return _issue_token(user)
 
 
 def get_current_user(db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)) -> User:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Invalid or expired token",
+        detail={"message": "Invalid or expired token", "details": None},
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:

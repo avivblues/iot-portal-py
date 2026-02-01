@@ -6,8 +6,8 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 from .core.config import get_settings
-from .db.session import Base, engine
 from .routes.auth import router as auth_router
+from .routes.devices import router as devices_router
 from .routes.health import router as health_router
 
 settings = get_settings()
@@ -31,14 +31,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-
-@app.on_event("startup")
-def on_startup():
-    Base.metadata.create_all(bind=engine)
-    print("[db] ensured tables are created")
-
-
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
     start = time.perf_counter()
@@ -50,3 +42,4 @@ async def log_requests(request: Request, call_next):
 
 app.include_router(health_router)
 app.include_router(auth_router)
+app.include_router(devices_router)

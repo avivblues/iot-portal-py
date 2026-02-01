@@ -37,4 +37,3 @@ TELEMETRY_TAG_METRIC = "metric"
 
 def metric_keys() -> list[str]:
     return [definition.key.value for definition in METRIC_DEFINITIONS.values()]
-*** End Patch
