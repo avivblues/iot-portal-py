@@ -2,6 +2,10 @@ import { Activity, AlertTriangle, ArrowUpRight, RadioTower, Workflow } from "luc
 
 import AppShell from "../components/AppShell";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../components/Card";
+import AlertsBarChart from "../components/charts/AlertsBarChart";
+import ConsumptionDonut from "../components/charts/ConsumptionDonut";
+import FleetHealthGauge from "../components/charts/FleetHealthGauge";
+import ThroughputChart from "../components/charts/ThroughputChart";
 import MetricCard from "../components/MetricCard";
 import StatusBadge from "../components/StatusBadge";
 import { useAuth } from "../context/AuthContext";
@@ -38,7 +42,7 @@ const Dashboard = () => {
       onLogout={logout}
       activeRoute="overview"
     >
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-8">
         <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
           {metricCards.map((card) => (
             <MetricCard key={card.label} {...card} />
@@ -46,10 +50,27 @@ const Dashboard = () => {
         </section>
 
         <section className="grid grid-cols-1 gap-6 xl:grid-cols-[2fr_1fr]">
-          <Card className="border-accent/30 bg-card/95">
+          <ThroughputChart />
+          <AlertsBarChart />
+        </section>
+
+        <section className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <ConsumptionDonut />
+          <FleetHealthGauge />
+        </section>
+
+        <section className="grid grid-cols-1 gap-6 xl:grid-cols-[2fr_1fr]">
+          <Card className="border-border/50 bg-card/80 backdrop-blur">
             <CardHeader className="flex flex-col gap-2">
-              <CardTitle>Live network status</CardTitle>
-              <CardDescription>All uplinks sampled every 15 seconds. Packet loss budget: 0.25%.</CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Live network status</CardTitle>
+                  <CardDescription>Telemetry cadence 15s · packet loss budget 0.25%</CardDescription>
+                </div>
+                <span className="rounded-full border border-success/40 bg-success/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-success">
+                  Auto-heal
+                </span>
+              </div>
             </CardHeader>
             <CardContent>
               {liveNetwork.length === 0 ? (
@@ -57,7 +78,10 @@ const Dashboard = () => {
               ) : (
                 <ul className="flex flex-col gap-4">
                   {liveNetwork.map((site) => (
-                    <li key={site.id} className="flex flex-col gap-2 rounded-2xl border border-border/60 bg-card/70 p-4 lg:flex-row lg:items-center lg:justify-between">
+                    <li
+                      key={site.id}
+                      className="flex flex-col gap-2 rounded-2xl border border-border/60 bg-background/60 p-4 transition hover:-translate-y-0.5 hover:border-primary/30 lg:flex-row lg:items-center lg:justify-between"
+                    >
                       <div>
                         <p className="text-base font-semibold text-card-foreground">{site.name}</p>
                         <p className="text-sm text-muted-foreground">{site.detail}</p>
@@ -73,10 +97,17 @@ const Dashboard = () => {
             </CardContent>
           </Card>
 
-          <Card className="bg-card/90">
-            <CardHeader>
-              <CardTitle>Upcoming maintenance</CardTitle>
-              <CardDescription>Change window locked; automations will buffer.</CardDescription>
+          <Card className="border-border/50 bg-card/85 backdrop-blur">
+            <CardHeader className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Upcoming maintenance</CardTitle>
+                  <CardDescription>Change window locked; automations will buffer.</CardDescription>
+                </div>
+                <span className="rounded-full border border-warning/50 bg-warning/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-warning">
+                  Scheduled
+                </span>
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
