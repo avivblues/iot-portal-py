@@ -1,4 +1,5 @@
 import { useState } from "react";
+import AuthLayout from "../components/AuthLayout";
 import { apiPost, saveAuthToken } from "../api/client";
 
 const Login = () => {
@@ -6,7 +7,6 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
-  const [lastUser, setLastUser] = useState<any | null>(null);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -18,8 +18,7 @@ const Login = () => {
         { email, password }
       );
       saveAuthToken(data.access_token);
-      setLastUser(data.user);
-      setMessage("Login successful");
+      window.location.href = "/dashboard";
     } catch (err) {
       setMessage(err instanceof Error ? err.message : String(err));
     } finally {
@@ -28,41 +27,29 @@ const Login = () => {
   };
 
   return (
-    <main style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#0f172a", color: "#f8fafc", padding: "2rem" }}>
-      <section style={{ width: "min(420px, 100%)", padding: "2.5rem", borderRadius: "1rem", background: "#1e293b" }}>
-        <p style={{ letterSpacing: "0.3em", fontSize: "0.75rem", opacity: 0.7 }}>IOT PORTAL</p>
-        <h1 style={{ marginTop: "0.5rem", marginBottom: "1rem" }}>Login</h1>
+    <AuthLayout title="Login" subtitle="Secure access to the IoT control room" footer={<a href="/register" style={{ color: "#7dd3fc" }}>Create an account</a>}>
+      <form onSubmit={submit}>
+        <label style={{ display: "block", marginBottom: "0.75rem" }}>
+          <span style={{ display: "block", marginBottom: "0.25rem", fontSize: "0.9rem" }}>Email</span>
+          <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" required style={{ width: "100%", padding: "0.65rem", borderRadius: "0.75rem", border: "1px solid rgba(148, 163, 184, 0.4)", background: "rgba(15, 23, 42, 0.6)", color: "#f8fafc" }} />
+        </label>
 
-        <form onSubmit={submit}>
-          <label style={{ display: "block", marginBottom: "0.5rem" }}>
-            <div style={{ marginBottom: "0.25rem", fontSize: "0.9rem" }}>Email</div>
-            <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" required style={{ width: "100%", padding: "0.5rem", borderRadius: "0.5rem" }} />
-          </label>
+        <label style={{ display: "block", marginBottom: "1rem" }}>
+          <span style={{ display: "block", marginBottom: "0.25rem", fontSize: "0.9rem" }}>Password</span>
+          <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" required style={{ width: "100%", padding: "0.65rem", borderRadius: "0.75rem", border: "1px solid rgba(148, 163, 184, 0.4)", background: "rgba(15, 23, 42, 0.6)", color: "#f8fafc" }} />
+        </label>
 
-          <label style={{ display: "block", marginBottom: "0.75rem" }}>
-            <div style={{ marginBottom: "0.25rem", fontSize: "0.9rem" }}>Password</div>
-            <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" required style={{ width: "100%", padding: "0.5rem", borderRadius: "0.5rem" }} />
-          </label>
+        <button type="submit" disabled={loading} style={{ width: "100%", padding: "0.95rem", borderRadius: "999px", background: "linear-gradient(135deg, #34d399, #22d3ee)", border: "none", color: "#021225", fontWeight: 700 }}>
+          {loading ? "Signing in…" : "Sign in"}
+        </button>
+      </form>
 
-          <button type="submit" disabled={loading} style={{ width: "100%", padding: "0.9rem", borderRadius: "999px", background: "#22d3ee", color: "#0f172a", fontWeight: 700 }}>
-            {loading ? "Signing in…" : "Sign in"}
-          </button>
-        </form>
-
-        <div style={{ marginTop: "1rem", fontSize: "0.9rem" }}>
-          <a href="/register" style={{ color: "#7dd3fc" }}>Create an account</a>
+      {message && (
+        <div style={{ marginTop: "1.25rem", padding: "0.85rem", borderRadius: "0.75rem", background: "rgba(248, 113, 113, 0.15)", border: "1px solid rgba(248, 113, 113, 0.3)", color: "#fecaca" }}>
+          {message}
         </div>
-
-        {message && (
-          <div style={{ marginTop: "1rem", padding: "0.75rem", borderRadius: "0.5rem", background: "#0b1220" }}>
-            <strong>Status:</strong> {message}
-            {lastUser && (
-              <pre style={{ marginTop: "0.5rem", whiteSpace: "pre-wrap" }}>{JSON.stringify(lastUser, null, 2)}</pre>
-            )}
-          </div>
-        )}
-      </section>
-    </main>
+      )}
+    </AuthLayout>
   );
 };
 

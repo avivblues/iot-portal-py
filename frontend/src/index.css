@@ -1,0 +1,39 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@400;500;600&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-bg: #020617;
+  --color-bg-muted: #030b1c;
+  --color-surface: #070f1d;
+  --color-surface-raised: #0f172a;
+  --color-surface-highlight: #13233c;
+  --color-border: #1e293b;
+  --color-accent: #8b5cf6;
+  --color-accent-soft: #22d3ee;
+  --color-accent-neon: #2dd4bf;
+  --color-foreground: #f8fafc;
+  --color-muted: #94a3b8;
+  --color-success: #34d399;
+  --color-warning: #fbbf24;
+  --color-danger: #f87171;
+  --color-scrim: rgba(2, 6, 23, 0.8);
+  --radius-lg: 1.25rem;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.4) transparent;
+}
+
+body {
+  @apply bg-background text-foreground font-sans antialiased;
+  min-height: 100vh;
+}
+
+::selection {
+  background-color: rgba(125, 211, 252, 0.35);
+  color: #f8fafc;
+}

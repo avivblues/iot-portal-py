@@ -1,3 +1,4 @@
+import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 
@@ -9,6 +10,7 @@ const App = () => {
 
   const path = typeof window !== "undefined" ? window.location.pathname : "/";
   if (path.startsWith("/register")) return <Register />;
+  if (path.startsWith("/dashboard")) return <Dashboard />;
   return <Login />;
 };
 

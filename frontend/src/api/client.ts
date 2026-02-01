@@ -40,6 +40,14 @@ export function getAuthToken(): string | null {
   }
 }
 
+export function clearAuthToken() {
+  try {
+    localStorage.removeItem(AUTH_TOKEN_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
 async function readApiError(res: ApiResponse) {
   const requestUrl = res.requestUrl ?? "";
   let bodyText = "";
