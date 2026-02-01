@@ -55,7 +55,6 @@ def upgrade() -> None:
         sa.Column("name", sa.String(length=255), nullable=False),
         sa.Column("location", sa.String(length=255), nullable=True),
         sa.Column("mqtt_topic_base", sa.String(length=255), nullable=False),
-        sa.Column("mqtt_device_id", postgresql.UUID(as_uuid=True), nullable=False, unique=True),
         sa.Column("device_key", sa.String(length=255), nullable=False, unique=True),
         sa.Column("status", device_status_enum, nullable=False, server_default=sa.text("'active'::devicestatus")),
         sa.Column("last_seen_at", sa.DateTime(timezone=True), nullable=True),
@@ -64,7 +63,6 @@ def upgrade() -> None:
     )
 
     op.create_index("ix_devices_tenant_id", "devices", ["tenant_id"])
-    op.create_index("ix_devices_mqtt_device_id", "devices", ["mqtt_device_id"], unique=True)
 
     op.create_table(
         "thresholds",
@@ -110,7 +108,6 @@ def downgrade() -> None:
     op.drop_index("ix_users_email", table_name="users")
     op.drop_table("alerts")
     op.drop_table("thresholds")
-    op.drop_index("ix_devices_mqtt_device_id", table_name="devices")
     op.drop_index("ix_devices_tenant_id", table_name="devices")
     op.drop_table("devices")
     op.drop_table("users")

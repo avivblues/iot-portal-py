@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import Alerts from "./pages/Alerts";
 import Automations from "./pages/Automations";
 import Dashboard from "./pages/Dashboard";
+import DeviceDetail from "./pages/DeviceDetail";
 import Devices from "./pages/Devices";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -20,6 +21,7 @@ const App = () => {
         <Route index element={<Navigate to="/dashboard" replace />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/devices" element={<Devices />} />
+        <Route path="/devices/:deviceId" element={<DeviceDetail />} />
         <Route path="/automations" element={<Automations />} />
         <Route path="/alerts" element={<Alerts />} />
       </Route>

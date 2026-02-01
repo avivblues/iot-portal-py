@@ -10,9 +10,12 @@ from fastapi.responses import JSONResponse
 
 from .core.config import get_settings
 from .core.errors import error_payload
+from .routes.alerts import router as alerts_router
 from .routes.auth import router as auth_router
+from .routes.dashboard import router as dashboard_router
 from .routes.devices import router as devices_router
 from .routes.health import router as health_router
+from .routes.internal import router as internal_router
 
 settings = get_settings()
 logger = logging.getLogger("iot_portal.api")
@@ -84,3 +87,6 @@ async def log_requests(request: Request, call_next):
 app.include_router(health_router)
 app.include_router(auth_router)
 app.include_router(devices_router)
+app.include_router(alerts_router)
+app.include_router(dashboard_router)
+app.include_router(internal_router)

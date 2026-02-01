@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import re
 import secrets
+from datetime import datetime, timedelta, timezone
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
 from ..core.config import get_settings
@@ -13,14 +15,22 @@ from ..db.models import Device, DeviceStatus, DeviceThreshold, User
 from ..db.session import get_db
 from ..routes.auth import get_current_user
 from ..schemas.device import DeviceCreateRequest, DeviceListResponse, DeviceResponse, DeviceUpdateRequest
+from ..schemas.telemetry import TelemetryLastResponse, TelemetryRangeResponse
 from ..schemas.threshold import (
     ThresholdBulkUpdateRequest,
     ThresholdListResponse,
     ThresholdResponse,
 )
+from ..services.telemetry_hub import TelemetrySample, telemetry_hub
+from ..services.telemetry_store import TelemetryStore, get_telemetry_store
 
 router = APIRouter(prefix="/devices", tags=["devices"])
 settings = get_settings()
+telemetry_store: TelemetryStore = get_telemetry_store()
+
+INTERVAL_PATTERN = re.compile(r"^(\d+)(s|m|h|d)$")
+DEFAULT_RANGE_HOURS = 1
+MAX_RANGE_DAYS = 7
 
 
 def _generate_device_key() -> str:
@@ -35,6 +45,14 @@ def _issue_device_key(db: Session) -> str:
             return candidate
 
 
+def _build_telemetry_topic(device: Device) -> str:
+    base = (device.mqtt_topic_base or "").strip()
+    if not base:
+        prefix = settings.mqtt_topic_prefix.strip("/") or "iot"
+        base = f"{prefix}/{device.id}"
+    return f"{base.rstrip('/')}/telemetry"
+
+
 def _serialize_device(device: Device) -> DeviceResponse:
     status_value = device.status.value if hasattr(device.status, "value") else device.status
     return DeviceResponse(
@@ -43,6 +61,7 @@ def _serialize_device(device: Device) -> DeviceResponse:
         name=device.name,
         location=device.location,
         mqtt_topic_base=device.mqtt_topic_base,
+        telemetry_topic=_build_telemetry_topic(device),
         device_key=device.device_key,
         status=status_value,
         last_seen_at=device.last_seen_at,
@@ -97,6 +116,29 @@ def _ensure_thresholds(db: Session, device: Device) -> list[DeviceThreshold]:
     if created:
         db.flush()
     return thresholds
+
+
+def _parse_datetime_param(value: str | None, *, default: datetime) -> datetime:
+    if not value:
+        return default
+    candidate = value.strip()
+    if candidate.endswith("Z"):
+        candidate = candidate[:-1] + "+00:00"
+    try:
+        parsed = datetime.fromisoformat(candidate)
+    except ValueError as exc:  # noqa: BLE001
+        raise api_error("Invalid timestamp", details={"value": value}) from exc
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc)
+
+
+def _validate_interval(value: str | None) -> str:
+    candidate = (value or "5m").strip()
+    match = INTERVAL_PATTERN.match(candidate)
+    if not match:
+        raise api_error("Invalid interval", details={"interval": value})
+    return candidate
 
 
 @router.get("", response_model=DeviceListResponse)
@@ -214,3 +256,63 @@ def upsert_thresholds(
     db.commit()
     refreshed = sorted(thresholds.values(), key=lambda t: t.metric_key)
     return ThresholdListResponse(items=[_serialize_threshold(item) for item in refreshed])
+
+
+@router.get("/{device_id}/telemetry/last", response_model=TelemetryLastResponse)
+def telemetry_last(
+    device_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    device = _get_device(db, current_user.tenant_id, device_id)
+    cached = telemetry_hub.get_last(device.id)
+    if cached:
+        return cached
+
+    try:
+        last_sample = telemetry_store.fetch_last(current_user.tenant_id, device.id)
+    except RuntimeError as exc:  # noqa: BLE001
+        raise api_error("Telemetry store unavailable", status_code=status.HTTP_502_BAD_GATEWAY) from exc
+
+    if last_sample:
+        telemetry_hub.update(
+            TelemetrySample(
+                device_id=device.id,
+                timestamp=last_sample.timestamp,
+                metrics={key: metric.value for key, metric in last_sample.metrics.items()},
+            )
+        )
+        return last_sample
+    return telemetry_store.build_empty_last(device.id)
+
+
+@router.get("/{device_id}/telemetry/range", response_model=TelemetryRangeResponse)
+def telemetry_range(
+    device_id: UUID,
+    metric: str = Query(..., description="Metric key"),
+    from_ts: str | None = Query(None, alias="from"),
+    to_ts: str | None = Query(None, alias="to"),
+    interval: str | None = Query(None, description="Flux duration such as 1m,5m,1h"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    device = _get_device(db, current_user.tenant_id, device_id)
+    metric_key = metric.strip()
+    if not _metric_key_allowed(metric_key):
+        raise api_error("Unknown metric key", details={"metric": metric})
+
+    now = datetime.now(timezone.utc)
+    start_default = now - timedelta(hours=DEFAULT_RANGE_HOURS)
+    start = _parse_datetime_param(from_ts, default=start_default)
+    stop = _parse_datetime_param(to_ts, default=now)
+    if start >= stop:
+        raise api_error("Invalid range", details={"from": start.isoformat(), "to": stop.isoformat()})
+    if stop - start > timedelta(days=MAX_RANGE_DAYS):
+        raise api_error("Range too large", details={"limit_days": MAX_RANGE_DAYS})
+
+    interval_value = _validate_interval(interval)
+
+    try:
+        return telemetry_store.fetch_range(current_user.tenant_id, device.id, metric_key, start, stop, interval_value)
+    except RuntimeError as exc:  # noqa: BLE001
+        raise api_error("Telemetry store unavailable", status_code=status.HTTP_502_BAD_GATEWAY) from exc

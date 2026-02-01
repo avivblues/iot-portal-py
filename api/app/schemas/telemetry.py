@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Annotated, Dict
+from typing import Annotated, Dict, List
+from uuid import UUID
 
-from pydantic import BaseModel, Field, NonNegativeFloat
+from pydantic import BaseModel, ConfigDict, Field
 
 MetricValue = Annotated[float, Field(strict=True)]
 
@@ -30,4 +31,37 @@ class TelemetryPayload(BaseModel):
     model_config = {
         "extra": "forbid",
     }
-*** End Patch
+
+
+class InternalTelemetryIngestRequest(TelemetryPayload):
+    device_id: UUID
+
+
+class TelemetryLastMetric(BaseModel):
+    unit: str
+    value: float | None
+
+
+class TelemetryLastResponse(BaseModel):
+    device_id: UUID
+    timestamp: datetime | None
+    metrics: Dict[str, TelemetryLastMetric]
+
+
+class TelemetryRangePoint(BaseModel):
+    timestamp: datetime
+    value: float | None
+
+
+class TelemetryRangeResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    device_id: UUID
+    metric: str
+    interval: str
+    points: List[TelemetryRangePoint]
+
+
+class TelemetryIngestResponse(BaseModel):
+    device_id: UUID
+    tenant_id: UUID

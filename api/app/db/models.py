@@ -59,7 +59,6 @@ class Device(Base):
     name = Column(String(255), nullable=False)
     location = Column(String(255), nullable=True)
     mqtt_topic_base = Column(String(255), nullable=False)
-    mqtt_device_id = Column(UUID(as_uuid=True), nullable=False, unique=True, index=True, default=uuid.uuid4)
     device_key = Column(String(255), nullable=False, unique=True)
     status = Column(SqlEnum(DeviceStatus), nullable=False, default=DeviceStatus.active)
     last_seen_at = Column(DateTime(timezone=True), nullable=True)
