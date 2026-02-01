@@ -14,18 +14,18 @@ const SidebarItem = ({ icon: Icon, label, href, active, badge }: SidebarItemProp
   <a
     href={href}
     className={cn(
-      "group flex items-center justify-between rounded-2xl border border-transparent px-4 py-3 text-sm font-medium transition-colors",
+      "group flex items-center justify-between rounded-2xl border px-4 py-3 text-sm font-medium transition-all",
       active
-        ? "border-accent/40 bg-surface-highlight/80 text-foreground shadow-brand"
-        : "text-muted hover:border-accent/30 hover:bg-surface-highlight/30 hover:text-foreground"
+        ? "border-ring bg-primary/10 text-foreground shadow-[var(--shadow-soft)]"
+        : "border-transparent text-muted-foreground hover:border-border hover:bg-card/60 hover:text-foreground"
     )}
   >
     <span className="flex items-center gap-3">
-      <Icon className="h-4 w-4 text-muted transition-colors group-hover:text-foreground" />
+      <Icon className="h-4 w-4 text-muted-foreground transition-colors group-hover:text-foreground" />
       {label}
     </span>
     {badge && (
-      <span className="rounded-full bg-accent/15 px-2 py-0.5 text-xs text-accent-soft">{badge}</span>
+      <span className="rounded-full bg-primary/15 px-2 py-0.5 text-xs text-primary">{badge}</span>
     )}
   </a>
 );

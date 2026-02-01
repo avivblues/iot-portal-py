@@ -86,25 +86,25 @@ const Dashboard = () => {
         </section>
 
         <section className="grid grid-cols-1 gap-6 xl:grid-cols-[2fr_1fr]">
-          <Card className="border-accent/20 bg-surface">
+          <Card className="border-accent/30 bg-card/95">
             <CardHeader className="flex flex-col gap-2">
               <CardTitle>Live network status</CardTitle>
               <CardDescription>All uplinks sampled every 15 seconds. Packet loss budget: 0.25%.</CardDescription>
             </CardHeader>
             <CardContent>
               {liveNetwork.length === 0 ? (
-                <p className="text-sm text-muted">No live events right now. Sensors will appear here when telemetry streams in.</p>
+                <p className="text-sm text-muted-foreground">No live events right now. Sensors will appear here when telemetry streams in.</p>
               ) : (
                 <ul className="flex flex-col gap-4">
                   {liveNetwork.map((site) => (
-                    <li key={site.id} className="flex flex-col gap-2 rounded-2xl border border-border/60 bg-surface-raised/60 p-4 lg:flex-row lg:items-center lg:justify-between">
+                    <li key={site.id} className="flex flex-col gap-2 rounded-2xl border border-border/60 bg-card/70 p-4 lg:flex-row lg:items-center lg:justify-between">
                       <div>
-                        <p className="text-base font-semibold text-foreground">{site.name}</p>
-                        <p className="text-sm text-muted">{site.detail}</p>
+                        <p className="text-base font-semibold text-card-foreground">{site.name}</p>
+                        <p className="text-sm text-muted-foreground">{site.detail}</p>
                       </div>
                       <div className="flex items-center gap-3">
                         <StatusBadge label={site.status} variant={site.variant} />
-                        <span className="text-xs text-muted">{site.updated}</span>
+                        <span className="text-xs text-muted-foreground">{site.updated}</span>
                       </div>
                     </li>
                   ))}
@@ -113,17 +113,17 @@ const Dashboard = () => {
             </CardContent>
           </Card>
 
-          <Card className="bg-surface-highlight/60">
+          <Card className="bg-card/90">
             <CardHeader>
               <CardTitle>Upcoming maintenance</CardTitle>
               <CardDescription>Change window locked; automations will buffer.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <p className="text-sm uppercase tracking-[0.3em] text-muted">{maintenancePlan.owner}</p>
-                <p className="mt-2 text-xl font-semibold text-foreground">{maintenancePlan.title}</p>
+                <p className="text-sm uppercase tracking-[0.3em] text-muted-foreground">{maintenancePlan.owner}</p>
+                <p className="mt-2 text-xl font-semibold text-card-foreground">{maintenancePlan.title}</p>
               </div>
-              <div className="rounded-2xl border border-border/70 bg-background-muted/40 p-4 text-sm text-muted">
+              <div className="rounded-2xl border border-border/70 bg-background-muted/40 p-4 text-sm text-muted-foreground">
                 <p className="font-semibold text-foreground">Window</p>
                 <p>{maintenancePlan.window}</p>
                 <p className="mt-3 font-semibold text-foreground">Notes</p>

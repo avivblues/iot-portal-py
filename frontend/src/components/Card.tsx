@@ -5,7 +5,7 @@ import { cn } from "../lib/utils";
 export const Card = ({ className, ...props }: HTMLAttributes<HTMLDivElement>) => (
   <div
     className={cn(
-      "rounded-[var(--radius-lg)] border border-border/70 bg-surface-raised/80 shadow-xl shadow-black/30 backdrop-blur-xl",
+      "rounded-[var(--radius-lg)] border border-border bg-card text-card-foreground shadow-[var(--shadow-soft)] backdrop-blur-md",
       className
     )}
     {...props}
@@ -21,7 +21,7 @@ export const CardTitle = ({ className, ...props }: HTMLAttributes<HTMLHeadingEle
 );
 
 export const CardDescription = ({ className, ...props }: HTMLAttributes<HTMLParagraphElement>) => (
-  <p className={cn("text-sm text-muted", className)} {...props} />
+  <p className={cn("text-sm text-muted-foreground", className)} {...props} />
 );
 
 export const CardContent = ({ className, ...props }: HTMLAttributes<HTMLDivElement>) => (

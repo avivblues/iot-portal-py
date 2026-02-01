@@ -5,7 +5,7 @@ type SkeletonProps = {
 };
 
 const Skeleton = ({ className }: SkeletonProps) => (
-  <div className={cn("animate-pulse rounded-[var(--radius-lg)] bg-surface-highlight/50", className)} />
+  <div className={cn("animate-pulse rounded-[var(--radius-lg)] bg-card/60", className)} />
 );
 
 export default Skeleton;

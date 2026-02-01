@@ -8,10 +8,10 @@ type StatusBadgeProps = {
 };
 
 const variantStyles: Record<Variant, string> = {
-  success: "text-success bg-success/15 border-success/40",
-  warning: "text-warning bg-warning/15 border-warning/40",
-  danger: "text-danger bg-danger/15 border-danger/40",
-  info: "text-accent-soft bg-accent-soft/10 border-accent-soft/40"
+  success: "border-success/50 bg-success/15 text-success-foreground",
+  warning: "border-warning/50 bg-warning/15 text-warning-foreground",
+  danger: "border-danger/50 bg-danger/15 text-danger-foreground",
+  info: "border-primary/40 bg-primary/10 text-primary"
 };
 
 const StatusBadge = ({ label, variant = "info" }: StatusBadgeProps) => (
