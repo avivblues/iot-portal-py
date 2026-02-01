@@ -18,6 +18,17 @@ class Settings(BaseSettings):
 
     api_allowed_origins: str = "http://localhost:5173"
 
+    influx_url: str = "http://influxdb:8086"
+    influx_token: str = "dev-token"
+    influx_org: str = "iot-org"
+    influx_bucket: str = "iot_telemetry"
+
+    mqtt_host: str = "mosquitto"
+    mqtt_port: int = 1883
+    mqtt_username: str | None = None
+    mqtt_password: str | None = None
+    mqtt_topic_prefix: str = "iot"
+
     @property
     def cors_origins(self) -> List[str]:
         return [origin.strip().rstrip("/") for origin in self.api_allowed_origins.split(",") if origin.strip()]
