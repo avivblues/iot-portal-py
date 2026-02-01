@@ -1,4 +1,4 @@
-import { WifiHigh, X } from "lucide-react";
+import { Wifi, X } from "lucide-react";
 import { ComponentType } from "react";
 
 import { cn } from "../lib/utils";
@@ -37,7 +37,7 @@ const Sidebar = ({ items, activeRoute, state, mobileOpen, onCloseMobile }: Sideb
       <div className={cn("flex items-center justify-between px-6", collapsed && "px-4 lg:justify-center")}>
         <div className="flex items-center gap-3">
           <span className="rounded-2xl border border-border/60 bg-background/60 p-2 text-primary shadow-soft">
-            <WifiHigh className="h-5 w-5" />
+            <Wifi className="h-5 w-5" />
           </span>
           {!collapsed && (
             <div>

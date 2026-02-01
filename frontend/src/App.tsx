@@ -1,6 +1,9 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 
+import Alerts from "./pages/Alerts";
+import Automations from "./pages/Automations";
 import Dashboard from "./pages/Dashboard";
+import Devices from "./pages/Devices";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ProtectedRoute from "./routes/ProtectedRoute";
@@ -16,6 +19,9 @@ const App = () => {
       <Route element={<ProtectedRoute />}>
         <Route index element={<Navigate to="/dashboard" replace />} />
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/devices" element={<Devices />} />
+        <Route path="/automations" element={<Automations />} />
+        <Route path="/alerts" element={<Alerts />} />
       </Route>
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />

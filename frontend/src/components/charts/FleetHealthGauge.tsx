@@ -35,15 +35,15 @@ const FleetHealthGauge = () => {
       <CardContent className="flex flex-col gap-6 lg:flex-row">
         <div className="h-56 w-full lg:w-1/2">
           <ResponsiveContainer width="100%" height="100%">
-            <RadialBarChart
-              data={breakdown}
-              startAngle={220}
-              endAngle={-40}
-              innerRadius="40%"
-              outerRadius="100%"
-            >
+              <RadialBarChart
+                data={breakdown}
+                startAngle={220}
+                endAngle={-40}
+                innerRadius="40%"
+                outerRadius="100%"
+              >
               <PolarAngleAxis type="number" domain={[0, Math.max(...breakdown.map((item) => item.value))]} tick={false} />
-              <RadialBar cornerRadius={16} minAngle={15} clockWise dataKey="value" background fillOpacity={0.2} />
+                <RadialBar cornerRadius={16} dataKey="value" background fillOpacity={0.2} />
             </RadialBarChart>
           </ResponsiveContainer>
           <div className="pointer-events-none -mt-32 flex flex-col items-center text-center">
