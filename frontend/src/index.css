@@ -1,9 +1,25 @@
 /*
 Design usage guide
 - Background layers: use bg-background for body, bg-card for surfaces, bg-background-muted for subtle bands.
-- Typography: text-foreground for primary copy, text-muted-foreground for secondary, uppercase labels with tracking.
+- Typography: text-foreground for primary copy, text-muted-foreground for secondary, uppercase labels for section tags.
 - Components: Cards = bg-card text-card-foreground border-border shadow-[var(--shadow-soft)].
-- Buttons + CTAs: bg-primary text-primary-foreground, hover:bg-primary/90, focus:ring-ring.
+- Buttons & CTAs: bg-primary text-primary-foreground; hover:bg-primary/90; focus-visible:ring-2 ring-ring.
+- Status states: success/warning/danger tokens for badges, alerts, and inline status text.
+- Never drop hex colors in components—tweak tokens here instead.
+*/
+
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@400;500;600&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+  --radius-lg: 1.25rem;
+  --radius-md: 0.9rem;
+  --shadow-soft: 0 40px 90px -45px rgba(15, 23, 42, 0.35);
+
   --color-background: 245 247 251;
   --color-background-muted: 237 242 255;
   --color-foreground: 11 18 32;
@@ -18,21 +34,25 @@ Design usage guide
   --color-primary-foreground: 2 18 28;
   --color-accent: 14 165 233;
   --color-accent-foreground: 224 242 254;
-  --shadow-soft: 0 40px 90px -45px rgba(15, 23, 42, 0.35);
+
   --color-success: 16 185 129;
   --color-success-foreground: 2 44 34;
   --color-warning: 245 158 11;
   --color-warning-foreground: 59 29 3;
   --color-danger: 239 68 68;
   --color-danger-foreground: 67 4 4;
-  --color-muted: #e2e8f0;
-  --color-muted-foreground: #4b5563;
-  --color-border: #d7dceb;
-  --color-ring: #94a3b8;
 
-  --color-primary: #06b6d4;
-  --color-primary-foreground: #02121c;
-  --color-accent: #0ea5e9;
+  --color-scrim: rgba(12, 18, 35, 0.55);
+
+  --accent-cyan: #06b6d4;
+  --accent-emerald: #10b981;
+  --accent-violet: #8b5cf6;
+}
+
+.dark {
+  color-scheme: dark;
+  --shadow-soft: 0 32px 90px -42px rgba(2, 6, 23, 0.85);
+
   --color-background: 2 6 23;
   --color-background-muted: 5 11 31;
   --color-foreground: 248 250 252;
@@ -49,52 +69,33 @@ Design usage guide
   --color-warning-foreground: 63 38 3;
   --color-danger: 248 113 113;
   --color-danger-foreground: 63 8 8;
-  color-scheme: dark;
-  --shadow-soft: 0 32px 90px -42px rgba(2, 6, 23, 0.85);
 
-  --color-background: #020617;
-  --color-background-muted: #050b1f;
+  --color-scrim: rgba(2, 6, 23, 0.8);
+
+  --accent-cyan: #06b6d4;
+  --accent-emerald: #10b981;
+  --accent-violet: #8b5cf6;
+}
+
+html[data-accent="cyan"] {
   --color-primary: 6 182 212;
   --color-primary-foreground: 2 18 28;
   --color-accent: 14 165 233;
   --color-accent-foreground: 224 242 254;
-  --color-muted-foreground: #94a3b8;
-  --color-border: rgba(148, 163, 184, 0.25);
-  --color-ring: rgba(56, 189, 248, 0.45);
+}
+
+html[data-accent="emerald"] {
   --color-primary: 16 185 129;
   --color-primary-foreground: 2 38 26;
   --color-accent: 52 211 153;
   --color-accent-foreground: 236 253 245;
-  --color-warning-foreground: #3f2603;
-  --color-danger: #f87171;
-  --color-danger-foreground: #3f0808;
+}
+
+html[data-accent="violet"] {
   --color-primary: 139 92 246;
   --color-primary-foreground: 28 14 54;
   --color-accent: 167 139 250;
   --color-accent-foreground: 244 241 255;
-
-  --color-scrim: rgba(2, 6, 23, 0.8);
-}
-
-html[data-accent="cyan"] {
-  --color-primary: #06b6d4;
-  --color-primary-foreground: #02121c;
-  --color-accent: #0ea5e9;
-  --color-accent-foreground: #e0f2fe;
-}
-
-html[data-accent="emerald"] {
-  --color-primary: #10b981;
-  --color-primary-foreground: #02261a;
-  --color-accent: #34d399;
-  --color-accent-foreground: #ecfdf5;
-}
-
-html[data-accent="violet"] {
-  --color-primary: #8b5cf6;
-  --color-primary-foreground: #1c0e36;
-  --color-accent: #a78bfa;
-  --color-accent-foreground: #f4f1ff;
 }
 
 * {
