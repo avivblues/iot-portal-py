@@ -1,5 +1,6 @@
 import os
 import time
+from typing import Optional
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -12,7 +13,7 @@ from .routes.health import router as health_router
 settings = get_settings()
 
 
-def parse_origins(raw: str | None) -> list[str]:
+def parse_origins(raw: Optional[str]) -> list[str]:
     if not raw:
         return []
     return [origin.strip().rstrip("/") for origin in raw.split(",") if origin.strip()]

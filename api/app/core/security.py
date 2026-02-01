@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 import jwt
 from passlib.context import CryptContext
@@ -18,7 +18,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
 
 
-def create_access_token(subject: str, expires_minutes: int | None = None) -> str:
+def create_access_token(subject: str, expires_minutes: Optional[int] = None) -> str:
     expire_delta = timedelta(minutes=expires_minutes or settings.jwt_expires_min)
     now = datetime.now(timezone.utc)
     payload: Dict[str, Any] = {
